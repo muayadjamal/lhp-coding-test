@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Events\Pages;
 
 use App\Filament\Resources\Events\EventResource;
+use App\Models\Event;
 use Carbon\CarbonImmutable;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -10,6 +11,15 @@ use Filament\Resources\Pages\EditRecord;
 class EditEvent extends EditRecord
 {
     protected static string $resource = EventResource::class;
+
+    /** Use the event's title (from the JSON payload) as the page heading. */
+    public function getTitle(): string
+    {
+        /** @var Event $record */
+        $record = $this->getRecord();
+
+        return $record->title();
+    }
 
     protected function getHeaderActions(): array
     {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Attendees\Tables;
 
+use App\Models\Event;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -33,6 +34,20 @@ class AttendeesTable
                 TextColumn::make('created_at')->dateTime()->label('Registered')->sortable(),
             ])
             ->filters([
+                SelectFilter::make('event_id')
+                    ->label('Event')
+                    ->searchable()
+                    // Search-driven, not preloaded: the events table is huge, so
+                    // query titles (in the JSON payload) on demand and cap the
+                    // result set. Only events with registrations are reachable.
+                    ->getSearchResultsUsing(fn (string $search): array => Event::query()
+                        ->whereHas('attendees')
+                        ->whereRaw('json_extract(payload, \'$.name\') like ?', ["%{$search}%"])
+                        ->limit(50)
+                        ->get()
+                        ->mapWithKeys(fn (Event $e) => [$e->id => $e->title()])
+                        ->all())
+                    ->getOptionLabelUsing(fn (string $value): ?string => Event::query()->find($value)?->title()),
                 SelectFilter::make('status')
                     ->options(['going' => 'Going', 'interested' => 'Interested']),
             ])
