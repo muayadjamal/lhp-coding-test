@@ -28,7 +28,7 @@ class EventFactory extends Factory
             'latitude' => $lat,
             'longitude' => $lng,
             'payload' => [
-                'name' => ucwords(fake()->words(3, true)),
+                'name' => ucwords(implode(' ', (array) fake()->words(3))),
                 'category' => $type,
                 'venue' => ['name' => fake()->company(), 'capacity' => fake()->numberBetween(20, 50000)],
                 'location' => ['lat' => $lat, 'lng' => $lng],
