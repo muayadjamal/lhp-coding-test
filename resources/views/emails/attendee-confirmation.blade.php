@@ -15,7 +15,7 @@ Thanks for registering for **{{ $event['title'] }}**. Here are the details:
 @endif
 </x-mail::panel>
 
-Your status: **{{ ucfirst($attendee->status) }}**
+Your status: **{{ $attendee->status->getLabel() }}**
 
 We'll send you a reminder as the event approaches — once **3 days before** and again **24 hours before**.
 
