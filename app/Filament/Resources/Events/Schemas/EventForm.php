@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Events\Schemas;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Event;
 use Closure;
 use Dotswan\MapPicker\Fields\Map;
@@ -19,24 +21,6 @@ use Livewire\Component;
 
 class EventForm
 {
-    private const TYPES = [
-        'concert' => 'Concert',
-        'conference' => 'Conference',
-        'meetup' => 'Meetup',
-        'workshop' => 'Workshop',
-        'festival' => 'Festival',
-        'sports' => 'Sports',
-        'networking' => 'Networking',
-        'exhibition' => 'Exhibition',
-    ];
-
-    private const STATUSES = [
-        'draft' => 'Draft',
-        'published' => 'Published',
-        'sold_out' => 'Sold out',
-        'cancelled' => 'Cancelled',
-    ];
-
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
@@ -55,11 +39,11 @@ class EventForm
                         ->rows(4)
                         ->columnSpanFull(),
                     Select::make('type')
-                        ->options(self::TYPES)
+                        ->options(EventType::class)
                         ->native(false)
                         ->required(),
                     Select::make('status')
-                        ->options(self::STATUSES)
+                        ->options(EventStatus::class)
                         ->native(false)
                         ->required(),
                     Toggle::make('payload.featured')

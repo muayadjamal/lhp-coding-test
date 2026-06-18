@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\EventStatus;
 use App\Mail\EventReminderMail;
 use App\Models\Attendee;
 use Illuminate\Console\Command;
@@ -54,7 +55,7 @@ class SendEventReminders extends Command
         Attendee::query()
             ->whereNull($column)
             ->whereHas('event', function ($q) use ($fromTimestamp, $untilTimestamp) {
-                $q->where('status', 'published')
+                $q->where('status', EventStatus::Published)
                     ->where('created_time', '>', $fromTimestamp)
                     ->where('created_time', '<=', $untilTimestamp);
             })

@@ -70,8 +70,8 @@ class EventResource extends Resource
         }
 
         return [
-            'Type' => ucfirst($record->type),
-            'Status' => ucfirst(str_replace('_', ' ', $record->status)),
+            'Type' => $record->type->getLabel(),
+            'Status' => $record->status->getLabel(),
             'When' => $record->startsAt()?->format('M j, Y') ?? '—',
         ];
     }

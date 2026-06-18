@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Events\Tables;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -33,14 +35,9 @@ class EventsTable
                 TextColumn::make('type')
                     ->badge()
                     ->sortable(),
+                // Label + colour come from the EventStatus enum (HasLabel/HasColor).
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state) => match ($state) {
-                        'published' => 'success',
-                        'sold_out' => 'warning',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    })
                     ->sortable(),
                 TextColumn::make('starts_at')
                     ->label('Starts')
@@ -54,18 +51,8 @@ class EventsTable
             ])
             ->defaultSort('created_time', 'desc')
             ->filters([
-                SelectFilter::make('type')
-                    ->options(array_combine(
-                        ['concert', 'conference', 'meetup', 'workshop', 'festival', 'sports', 'networking', 'exhibition'],
-                        ['Concert', 'Conference', 'Meetup', 'Workshop', 'Festival', 'Sports', 'Networking', 'Exhibition'],
-                    )),
-                SelectFilter::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'published' => 'Published',
-                        'sold_out' => 'Sold out',
-                        'cancelled' => 'Cancelled',
-                    ]),
+                SelectFilter::make('type')->options(EventType::class),
+                SelectFilter::make('status')->options(EventStatus::class),
             ])
             ->recordActions([
                 EditAction::make(),

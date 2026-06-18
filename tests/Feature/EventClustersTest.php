@@ -13,7 +13,7 @@ it('returns individual points when the result set is small', function () {
     $this->getJson(route('events.clusters', ['zoom' => 3]))
         ->assertOk()
         ->assertJsonPath('mode', 'points')
-        ->assertJsonStructure(['mode', 'total', 'points' => [['id', 'lat', 'lng', 'type', 'title']]]);
+        ->assertJsonStructure(['mode', 'total', 'data' => [['id', 'lat', 'lng', 'type', 'title']]]);
 });
 
 it('applies filters before aggregating', function () {

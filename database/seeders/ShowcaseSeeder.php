@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AttendeeStatus;
+use App\Enums\EventStatus;
 use App\Models\Attendee;
 use App\Models\Event;
 use Illuminate\Database\Seeder;
@@ -57,7 +59,7 @@ class ShowcaseSeeder extends Seeder
             $event = Event::create([
                 'user_id' => 1,
                 'type' => $data['type'],
-                'status' => 'published',
+                'status' => EventStatus::Published->value,
                 'created_time' => $startsAt->timestamp,
                 'latitude' => $lat,
                 'longitude' => $lng,
@@ -81,7 +83,7 @@ class ShowcaseSeeder extends Seeder
                     'event_id' => $event->id,
                     'name' => "Guest {$i}-{$j}",
                     'email' => "guest{$i}_{$j}@example.test",
-                    'status' => 'going',
+                    'status' => AttendeeStatus::Going->value,
                     'confirmed_at' => now(),
                 ]);
             }

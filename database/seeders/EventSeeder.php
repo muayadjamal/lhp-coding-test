@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,11 +21,6 @@ class EventSeeder extends Seeder
     // 10 bound columns per row; keep chunk * 10 under SQLite's
     // SQLITE_MAX_VARIABLE_NUMBER (32766) so the default sqlite driver works.
     private const CHUNK = 2000;
-
-    /** Event categories (stored in the `type` column). */
-    private const TYPES = ['concert', 'conference', 'meetup', 'workshop', 'festival', 'sports', 'networking', 'exhibition'];
-
-    private const STATUSES = ['draft', 'published', 'cancelled', 'sold_out'];
 
     private const NAME_ADJECTIVES = ['Annual', 'Global', 'Summer', 'Winter', 'Underground', 'Open', 'International', 'Live', 'Midnight', 'Sunset', 'Urban', 'Indie', 'Grand', 'Pop-up', 'Virtual'];
 
@@ -102,8 +99,11 @@ class EventSeeder extends Seeder
         $startTime = $now_ts - $year;
         $endTime = $now_ts + $year;
 
+        // Weights line up positionally with the enum case order.
+        $types = EventType::values();
+        $statuses = EventStatus::values();
         $typeWeights = $this->cumulativeWeights([20, 14, 22, 12, 12, 8, 8, 4]);
-        $statusWeights = $this->cumulativeWeights([12, 70, 8, 10]);
+        $statusWeights = $this->cumulativeWeights([12, 70, 10, 8]);
         $anchorCount = count(self::CITY_ANCHORS);
 
         $remaining = $count;
@@ -114,8 +114,8 @@ class EventSeeder extends Seeder
             $batch = [];
 
             for ($i = 0; $i < $batchSize; $i++) {
-                $type = self::TYPES[$this->pick($typeWeights)];
-                $status = self::STATUSES[$this->pick($statusWeights)];
+                $type = $types[$this->pick($typeWeights)];
+                $status = $statuses[$this->pick($statusWeights)];
                 $startsAt = mt_rand($startTime, $endTime);
                 $endsAt = $startsAt + mt_rand(3600, 3 * 24 * 3600);
 

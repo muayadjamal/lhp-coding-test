@@ -13,7 +13,12 @@ import {
 } from '@/composables/useEventFilters';
 import EventsLayout from '@/layouts/EventsLayout.vue';
 import { fetchClusters, fetchFilterOptions } from '@/lib/events';
-import type { EventFilters as Filters, FilterOptions } from '@/lib/events';
+import type {
+    Cluster,
+    EventFilters as Filters,
+    FilterOptions,
+    MapPoint,
+} from '@/lib/events';
 
 defineOptions({ layout: EventsLayout });
 
@@ -96,7 +101,7 @@ async function refresh() {
         mode.value = res.mode;
 
         if (res.mode === 'clusters') {
-            for (const c of res.clusters ?? []) {
+            for (const c of res.data as Cluster[]) {
                 const marker = L.marker([c.lat, c.lng], {
                     icon: clusterIcon(c.count),
                 });
@@ -110,7 +115,7 @@ async function refresh() {
                 marker.addTo(layer);
             }
         } else {
-            for (const p of res.points ?? []) {
+            for (const p of res.data as MapPoint[]) {
                 const marker = L.marker([p.lat, p.lng], {
                     icon: pointIcon(p.featured),
                 });
@@ -143,14 +148,6 @@ function scheduleRefresh() {
 function flyToLocation(f: Filters) {
     if (!map || !options.value) {
         return refresh();
-    }
-
-    if (f.near) {
-        const [lat, lng] = f.near.split(',').map(Number);
-
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-            return void map.flyTo([lat, lng], 9, { duration: 0.8 });
-        }
     }
 
     if (f.city) {
@@ -194,7 +191,7 @@ watch(
     filters,
     (f) => {
         syncFiltersToUrl(f);
-        const locationKey = `${f.country ?? ''}|${f.city ?? ''}|${f.near ?? ''}`;
+        const locationKey = `${f.country ?? ''}|${f.city ?? ''}`;
 
         if (locationKey !== lastLocationKey) {
             lastLocationKey = locationKey;
@@ -227,9 +224,9 @@ onMounted(async () => {
 
     // Apply filters restored from the URL: fly to the saved location, else fit world.
     const f = filters.value;
-    lastLocationKey = `${f.country ?? ''}|${f.city ?? ''}|${f.near ?? ''}`;
+    lastLocationKey = `${f.country ?? ''}|${f.city ?? ''}`;
 
-    if (f.country || f.city || f.near) {
+    if (f.country || f.city) {
         flyToLocation(f);
     } else {
         refresh();

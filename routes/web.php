@@ -20,9 +20,3 @@ Route::get('events/{event}', [EventController::class, 'show'])->name('events.sho
 Route::post('events/{event}/attendees', [AttendeeController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('events.attendees.store');
-
-// No dashboard page — the post-login redirect target for Fortify just lands on
-// the discover grid.
-Route::redirect('dashboard', '/events-visual-2')->name('dashboard');
-
-require __DIR__.'/settings.php';
