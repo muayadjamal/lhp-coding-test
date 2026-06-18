@@ -65,8 +65,8 @@ export interface Cluster {
 export interface ClusterResponse {
     mode: 'clusters' | 'points';
     total: number;
-    clusters?: Cluster[];
-    points?: MapPoint[];
+    // Both modes share one envelope; `mode` says which shape `data` holds.
+    data: Cluster[] | MapPoint[];
 }
 
 export interface Bounds {

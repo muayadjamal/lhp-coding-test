@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\EventStatus;
 use App\Enums\EventType;
+use App\Http\Resources\EventResource;
+use App\Http\Resources\MapClusterResource;
+use App\Http\Resources\MapPointResource;
 use App\Models\Event;
-use App\Services\Geocoder;
 use App\Support\LocationFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -102,15 +104,15 @@ class EventController extends Controller
             ->forPage($page, self::PER_PAGE)
             ->get();
 
-        $data = $events->map(fn (Event $e) => $e->toDisplayArray())->all();
-
-        return response()->json([
-            'data' => $data,
-            'current_page' => $page,
-            'last_page' => max(1, (int) ceil($total / self::PER_PAGE)),
-            'total' => $total,
-            'stats' => ['ms' => (int) round((microtime(true) - $start) * 1000)],
-        ])->header('Cache-Control', 'public, max-age=15, s-maxage=60');
+        return EventResource::collection($events)
+            ->additional([
+                'current_page' => $page,
+                'last_page' => max(1, (int) ceil($total / self::PER_PAGE)),
+                'total' => $total,
+                'stats' => ['ms' => (int) round((microtime(true) - $start) * 1000)],
+            ])
+            ->response()
+            ->header('Cache-Control', 'public, max-age=15, s-maxage=60');
     }
 
     /**
@@ -120,7 +122,7 @@ class EventController extends Controller
      * filters (date, location, status, type) are applied before aggregating, so
      * clustering always reflects the current filter state.
      */
-    public function clusters(Request $request, Geocoder $geocoder): JsonResponse
+    public function clusters(Request $request): JsonResponse
     {
         $zoom = (int) $request->input('zoom', 3);
         $filters = $this->filtersFrom($request) + $request->only(['north', 'south', 'east', 'west']);
@@ -157,37 +159,26 @@ class EventController extends Controller
         $total = array_sum(array_column($grid, 'count'));
 
         // Zoom in far enough (or few enough events) → return real markers.
+        // Both modes share a single `data` envelope plus a `mode` discriminator.
         if ($zoom >= 11 || $total <= self::INDIVIDUAL_THRESHOLD) {
-            $points = (clone $base)
+            $events = (clone $base)
                 ->select('id', 'latitude', 'longitude', 'type', 'created_time', 'payload')
                 ->limit(self::INDIVIDUAL_THRESHOLD)
-                ->get()
-                ->map(function (Event $e) use ($geocoder) {
-                    $loc = $geocoder->resolve($e->latitude, $e->longitude);
-                    $tz = $loc['tz'] ?? 'UTC';
+                ->get();
 
-                    return [
-                        'id' => $e->id,
-                        'lat' => $e->latitude,
-                        'lng' => $e->longitude,
-                        'type' => $e->type->value,
-                        'title' => $e->title(),
-                        'location_label' => $loc['label'] ?? null,
-                        'starts_at_local' => $e->startsAt()?->setTimezone($tz)->format('D, M j · g:i A'),
-                        'featured' => (bool) ($e->payload['featured'] ?? false),
-                    ];
-                })
-                ->all();
-
-            return response()->json(['mode' => 'points', 'total' => $total, 'points' => $points])
+            return MapPointResource::collection($events)
+                ->additional(['mode' => 'points', 'total' => $total])
+                ->response()
                 ->header('Cache-Control', 'public, max-age=15, s-maxage=30');
         }
 
-        return response()->json(['mode' => 'clusters', 'total' => $total, 'clusters' => $grid])
+        return MapClusterResource::collection($grid)
+            ->additional(['mode' => 'clusters', 'total' => $total])
+            ->response()
             ->header('Cache-Control', 'public, max-age=15, s-maxage=30');
     }
 
-    public function show(Event $event, Geocoder $geocoder): Response
+    public function show(Event $event): Response
     {
         // Draft (and any non-public) events are not browsable publicly.
         abort_unless(in_array($event->status, EventStatus::browsable(), true), 404);
