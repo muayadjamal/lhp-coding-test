@@ -212,7 +212,6 @@ class EventController extends Controller
             'to' => $request->input('to'),
             'city' => $request->input('city'),
             'country' => $request->input('country'),
-            'near' => $request->input('near'),
         ], fn ($v) => $v !== null && $v !== '');
     }
 }

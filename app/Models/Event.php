@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Services\Geocoder;
 use App\Support\LocationFilter;
 use Carbon\CarbonImmutable;
@@ -179,21 +181,6 @@ class Event extends Model
         if (isset($filters['north'], $filters['south'], $filters['east'], $filters['west'])) {
             $query->whereBetween('latitude', [(float) $filters['south'], (float) $filters['north']])
                 ->whereBetween('longitude', [(float) $filters['west'], (float) $filters['east']]);
-        }
-
-        // "Near me": a "lat,lng" point expanded to a ~150km bounding box.
-        if (! empty($filters['near'])) {
-            $parts = array_map('trim', explode(',', (string) $filters['near']));
-            if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])) {
-                $lat = (float) $parts[0];
-                $lng = (float) $parts[1];
-                $radiusKm = 150.0;
-                $latDelta = $radiusKm / 111.0;
-                $lngDelta = $radiusKm / (111.0 * max(0.1, cos(deg2rad($lat))));
-
-                $query->whereBetween('latitude', [$lat - $latDelta, $lat + $latDelta])
-                    ->whereBetween('longitude', [$lng - $lngDelta, $lng + $lngDelta]);
-            }
         }
 
         // Location filter by city and/or country, expanded to anchor bboxes.
