@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\AttendeeStatus;
 use App\Models\Attendee;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,7 +20,7 @@ class AttendeeFactory extends Factory
             'event_id' => Event::factory(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'status' => fake()->randomElement(['going', 'interested']),
+            'status' => fake()->randomElement(AttendeeStatus::values()),
             'confirmed_at' => now(),
         ];
     }

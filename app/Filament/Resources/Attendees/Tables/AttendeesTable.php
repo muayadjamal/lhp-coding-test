@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Attendees\Tables;
 
+use App\Enums\AttendeeStatus;
 use App\Models\Event;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -25,9 +26,9 @@ class AttendeesTable
                     ->label('Event')
                     ->getStateUsing(fn ($record) => $record->event?->title())
                     ->wrap(),
+                // Label + colour come from the AttendeeStatus enum.
                 TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state) => $state === 'going' ? 'success' : 'gray'),
+                    ->badge(),
                 TextColumn::make('confirmed_at')->dateTime()->label('Confirmed')->placeholder('—')->toggleable(),
                 TextColumn::make('reminder_3d_sent_at')->dateTime()->label('3-day')->placeholder('—')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('reminder_24h_sent_at')->dateTime()->label('24h')->placeholder('—')->toggleable(isToggledHiddenByDefault: true),
@@ -48,8 +49,7 @@ class AttendeesTable
                         ->mapWithKeys(fn (Event $e) => [$e->id => $e->title()])
                         ->all())
                     ->getOptionLabelUsing(fn (string $value): ?string => Event::query()->find($value)?->title()),
-                SelectFilter::make('status')
-                    ->options(['going' => 'Going', 'interested' => 'Interested']),
+                SelectFilter::make('status')->options(AttendeeStatus::class),
             ])
             ->recordActions([
                 EditAction::make(),

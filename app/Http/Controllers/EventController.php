@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Event;
 use App\Services\Geocoder;
 use App\Support\LocationFilter;
@@ -15,11 +17,6 @@ use Inertia\Response;
 
 class EventController extends Controller
 {
-    /** Statuses worth browsing on the public pages. */
-    private const STATUSES = ['published', 'sold_out', 'cancelled'];
-
-    private const TYPES = ['concert', 'conference', 'meetup', 'workshop', 'festival', 'sports', 'networking', 'exhibition'];
-
     private const PER_PAGE = 24;
 
     /** Below this count (or once zoomed in) the map returns real markers. */
@@ -36,7 +33,7 @@ class EventController extends Controller
         // is an index seek. Approximate uniformity is plenty for "surprise me".
         $now = now()->getTimestamp();
         $bounds = Cache::remember('events:time-bounds', now()->addMinutes(10), fn () => Event::query()
-            ->where('status', 'published')
+            ->where('status', EventStatus::Published)
             ->selectRaw('MIN(created_time) as min, MAX(created_time) as max')
             ->toBase()
             ->first());
@@ -46,12 +43,12 @@ class EventController extends Controller
         $pivot = $max > $min ? random_int($min, $max) : $min;
 
         $event = Event::query()
-            ->where('status', 'published')
+            ->where('status', EventStatus::Published)
             ->where('created_time', '>=', $pivot)
             ->orderBy('created_time')
             ->first()
             ?? Event::query()
-                ->where('status', 'published')
+                ->where('status', EventStatus::Published)
                 ->orderByDesc('created_time')
                 ->firstOrFail();
 
@@ -66,8 +63,8 @@ class EventController extends Controller
         // Option lists derive from compile-time constants, so they only change
         // on deploy: cache them and let browsers/CDN hold them for an hour.
         $options = Cache::remember('events:filter-options', now()->addDay(), fn () => [
-            'statuses' => self::STATUSES,
-            'types' => self::TYPES,
+            'statuses' => EventStatus::browsableValues(),
+            'types' => EventType::values(),
             'countries' => LocationFilter::countryOptions(),
             'cities' => LocationFilter::cityOptions(),
         ]);
@@ -86,7 +83,7 @@ class EventController extends Controller
         $filters = $this->filtersFrom($request);
         $page = max(1, (int) $request->input('page', 1));
 
-        $base = Event::query()->whereIn('status', self::STATUSES)->filter($filters);
+        $base = Event::query()->whereIn('status', EventStatus::browsableValues())->filter($filters);
 
         // The total is identical for every page of one filter set, so counting
         // it on each infinite-scroll request would re-scan the table needlessly.
@@ -128,7 +125,7 @@ class EventController extends Controller
         $zoom = (int) $request->input('zoom', 3);
         $filters = $this->filtersFrom($request) + $request->only(['north', 'south', 'east', 'west']);
 
-        $base = Event::query()->whereIn('status', self::STATUSES)->filter($filters);
+        $base = Event::query()->whereIn('status', EventStatus::browsableValues())->filter($filters);
 
         // Aggregate into a coordinate grid. Cell size (degrees) shrinks with
         // zoom; the divisor is bound as a parameter so the SQL stays a literal
@@ -173,7 +170,7 @@ class EventController extends Controller
                         'id' => $e->id,
                         'lat' => $e->latitude,
                         'lng' => $e->longitude,
-                        'type' => $e->type,
+                        'type' => $e->type->value,
                         'title' => $e->title(),
                         'location_label' => $loc['label'] ?? null,
                         'starts_at_local' => $e->startsAt()?->setTimezone($tz)->format('D, M j · g:i A'),
@@ -193,7 +190,7 @@ class EventController extends Controller
     public function show(Event $event, Geocoder $geocoder): Response
     {
         // Draft (and any non-public) events are not browsable publicly.
-        abort_unless(in_array($event->status, self::STATUSES, true), 404);
+        abort_unless(in_array($event->status, EventStatus::browsable(), true), 404);
 
         $event->load('images')->loadCount('attendees');
 

@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -15,7 +17,7 @@ class EventFactory extends Factory
 
     public function definition(): array
     {
-        $type = fake()->randomElement(['concert', 'conference', 'meetup', 'workshop', 'festival', 'sports', 'networking', 'exhibition']);
+        $type = fake()->randomElement(EventType::values());
         $lat = fake()->latitude();
         $lng = fake()->longitude();
         $startsAt = fake()->numberBetween(strtotime('-1 year'), strtotime('+1 year'));
@@ -23,7 +25,7 @@ class EventFactory extends Factory
         return [
             'user_id' => User::factory(),
             'type' => $type,
-            'status' => 'published',
+            'status' => EventStatus::Published->value,
             'created_time' => $startsAt,
             'latitude' => $lat,
             'longitude' => $lng,

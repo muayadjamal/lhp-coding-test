@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Attendees\Schemas;
 
+use App\Enums\AttendeeStatus;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -21,8 +22,8 @@ class AttendeeForm
             TextInput::make('name')->required(),
             TextInput::make('email')->email()->required(),
             Select::make('status')
-                ->options(['going' => 'Going', 'interested' => 'Interested'])
-                ->default('going')
+                ->options(AttendeeStatus::class)
+                ->default(AttendeeStatus::Going->value)
                 ->required(),
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AttendeeStatus;
 use Database\Factories\AttendeeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,7 @@ class Attendee extends Model
     protected $guarded = [];
 
     protected $casts = [
+        'status' => AttendeeStatus::class,
         'confirmed_at' => 'datetime',
         'reminder_3d_sent_at' => 'datetime',
         'reminder_24h_sent_at' => 'datetime',

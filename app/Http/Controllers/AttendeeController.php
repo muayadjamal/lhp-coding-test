@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AttendeeStatus;
 use App\Mail\AttendeeConfirmationMail;
 use App\Models\Event;
 use Illuminate\Http\JsonResponse;
@@ -46,7 +47,7 @@ class AttendeeController extends Controller
         $attendee = $event->attendees()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'status' => $validated['status'] ?? 'going',
+            'status' => $validated['status'] ?? AttendeeStatus::Going->value,
             'confirmed_at' => now(),
         ]);
 

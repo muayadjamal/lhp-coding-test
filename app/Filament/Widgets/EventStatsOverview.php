@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\EventStatus;
 use App\Models\Attendee;
 use App\Models\Event;
 use Filament\Support\Icons\Heroicon;
@@ -19,9 +20,9 @@ class EventStatsOverview extends StatsOverviewWidget
         // briefly — the dashboard doesn't need to-the-second accuracy.
         $stats = Cache::remember('admin:event-stats', now()->addMinutes(5), fn () => [
             'total' => Event::query()->count(),
-            'published' => Event::query()->where('status', 'published')->count(),
+            'published' => Event::query()->where('status', EventStatus::Published)->count(),
             'upcoming' => Event::query()
-                ->where('status', 'published')
+                ->where('status', EventStatus::Published)
                 ->where('created_time', '>=', now()->getTimestamp())
                 ->count(),
             'attendees' => Attendee::query()->count(),

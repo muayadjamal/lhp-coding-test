@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AttendeeStatus;
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Event;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +22,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class EventMediaSeeder extends Seeder
 {
-    private const CATEGORIES = ['concert', 'conference', 'meetup', 'workshop', 'festival', 'sports', 'networking', 'exhibition'];
-
     /** @var array<string, bool> */
     private array $existsCache = [];
 
@@ -44,7 +45,7 @@ class EventMediaSeeder extends Seeder
      */
     private function pickImages(string $type): array
     {
-        $category = in_array($type, self::CATEGORIES, true) ? $type : 'generic';
+        $category = in_array($type, EventType::values(), true) ? $type : 'generic';
 
         return [
             ['path' => $this->resolveStoredPath("{$category}-1"), 'is_primary' => true, 'sort_order' => 0],
@@ -74,7 +75,7 @@ class EventMediaSeeder extends Seeder
             ->chunkById(1000, function ($events) use ($now) {
                 $rows = [];
                 foreach ($events as $event) {
-                    foreach ($this->pickImages($event->type) as $pick) {
+                    foreach ($this->pickImages($event->type->value) as $pick) {
                         $rows[] = [
                             'event_id' => $event->id,
                             'path' => $pick['path'],
@@ -95,7 +96,7 @@ class EventMediaSeeder extends Seeder
     private function seedAttendees(): void
     {
         $events = Event::query()
-            ->where('status', 'published')
+            ->where('status', EventStatus::Published)
             ->where('created_time', '>=', now()->timestamp)
             ->inRandomOrder()
             ->limit(150)
@@ -112,7 +113,7 @@ class EventMediaSeeder extends Seeder
                     'event_id' => $eventId,
                     'name' => "Sample Attendee {$n}",
                     'email' => "attendee{$n}@example.test",
-                    'status' => mt_rand(0, 4) === 0 ? 'interested' : 'going',
+                    'status' => mt_rand(0, 4) === 0 ? AttendeeStatus::Interested->value : AttendeeStatus::Going->value,
                     'confirmed_at' => $now,
                     'created_at' => $now,
                     'updated_at' => $now,

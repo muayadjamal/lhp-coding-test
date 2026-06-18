@@ -27,6 +27,8 @@ class Event extends Model
         'payload' => 'array',
         'latitude' => 'float',
         'longitude' => 'float',
+        'type' => EventType::class,
+        'status' => EventStatus::class,
     ];
 
     public function newUniqueId(): string
@@ -126,8 +128,8 @@ class Event extends Model
             'id' => $this->id,
             'title' => $this->title(),
             'description' => $this->description(),
-            'type' => $this->type,
-            'status' => $this->status,
+            'type' => $this->type->value,
+            'status' => $this->status->value,
             'featured' => (bool) ($this->payload['featured'] ?? false),
             'venue' => $this->venueName(),
             'latitude' => $this->latitude,

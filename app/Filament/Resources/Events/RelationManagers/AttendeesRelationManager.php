@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Events\RelationManagers;
 
+use App\Enums\AttendeeStatus;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -26,8 +27,8 @@ class AttendeesRelationManager extends RelationManager
             TextInput::make('name')->required(),
             TextInput::make('email')->email()->required(),
             Select::make('status')
-                ->options(['going' => 'Going', 'interested' => 'Interested'])
-                ->default('going')
+                ->options(AttendeeStatus::class)
+                ->default(AttendeeStatus::Going->value)
                 ->required(),
         ]);
     }
@@ -40,8 +41,7 @@ class AttendeesRelationManager extends RelationManager
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('email')->searchable()->copyable(),
                 TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state) => $state === 'going' ? 'success' : 'gray'),
+                    ->badge(),
                 TextColumn::make('confirmed_at')->dateTime()->label('Confirmed')->placeholder('—'),
                 TextColumn::make('reminder_3d_sent_at')->dateTime()->label('3-day reminder')->placeholder('—')->toggleable(),
                 TextColumn::make('reminder_24h_sent_at')->dateTime()->label('24h reminder')->placeholder('—')->toggleable(),
