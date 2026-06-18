@@ -1,3 +1,7 @@
+// This file augments existing modules; the empty export keeps it a module so
+// the `declare module` blocks below augment rather than replace.
+export {};
+
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
     interface ImportMetaEnv {
