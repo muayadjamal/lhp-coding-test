@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Geocoder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Shared instance so its per-request coordinate memo is reused across
+        // every row a page resolves, instead of one cache per `app()` call.
+        $this->app->singleton(Geocoder::class);
     }
 
     /**

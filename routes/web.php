@@ -17,7 +17,9 @@ Route::inertia('events-visual-1', 'Events/VisualOne')->name('events.visual1');
 Route::inertia('events-visual-2', 'Events/VisualTwo')->name('events.visual2');
 
 Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
-Route::post('events/{event}/attendees', [AttendeeController::class, 'store'])->name('events.attendees.store');
+Route::post('events/{event}/attendees', [AttendeeController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('events.attendees.store');
 
 // No dashboard page — the post-login redirect target for Fortify just lands on
 // the discover grid.

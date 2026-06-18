@@ -8,9 +8,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Pinterest-style design tokens (see DESIGN.md). Used by the public event pages
-  (the two visuals + event detail). Fixed hex values — these surfaces are always
-  light/cream and do not follow the app's dark mode.
+  Pinterest-style design tokens (see DESIGN.md). Surface/text tokens map to CSS
+  variables defined in :root and .dark below, so the event pages follow the
+  light/dark switch. Brand red, focus and success stay constant.
 */
 @theme {
     --font-pin:
@@ -19,23 +19,24 @@
 
     --color-pin-red: #e60023;
     --color-pin-red-pressed: #cc001f;
-    --color-pin-ink: #000000;
     --color-pin-ink-soft: #211922;
-    --color-pin-body: #33332e;
-    --color-pin-mute: #62625b;
-    --color-pin-ash: #91918c;
     --color-pin-stone: #c8c8c1;
-    --color-pin-hairline: #dadad3;
-    --color-pin-hairline-soft: #e5e5e0;
-    --color-pin-canvas: #ffffff;
-    --color-pin-soft: #fbfbf9;
-    --color-pin-card: #f6f6f3;
-    --color-pin-secondary: #e5e5e0;
-    --color-pin-secondary-pressed: #c8c8c1;
     --color-pin-dark: #262622;
     --color-pin-focus: #435ee5;
     --color-pin-success: #103c25;
     --color-pin-success-pale: #c7f0da;
+
+    --color-pin-ink: var(--pin-ink);
+    --color-pin-body: var(--pin-body);
+    --color-pin-mute: var(--pin-mute);
+    --color-pin-ash: var(--pin-ash);
+    --color-pin-hairline: var(--pin-hairline);
+    --color-pin-hairline-soft: var(--pin-hairline-soft);
+    --color-pin-canvas: var(--pin-canvas);
+    --color-pin-soft: var(--pin-soft);
+    --color-pin-card: var(--pin-card);
+    --color-pin-secondary: var(--pin-secondary);
+    --color-pin-secondary-pressed: var(--pin-secondary-pressed);
 
     --radius-pin-sm: 8px;
     --radius-pin-md: 16px;
@@ -125,6 +126,19 @@
 }
 
 :root {
+    /* Pinterest tokens — light */
+    --pin-ink: #000000;
+    --pin-body: #33332e;
+    --pin-mute: #62625b;
+    --pin-ash: #91918c;
+    --pin-hairline: #dadad3;
+    --pin-hairline-soft: #e5e5e0;
+    --pin-canvas: #ffffff;
+    --pin-soft: #fbfbf9;
+    --pin-card: #f6f6f3;
+    --pin-secondary: #e5e5e0;
+    --pin-secondary-pressed: #c8c8c1;
+
     --background: hsl(0 0% 100%);
     --foreground: hsl(0 0% 3.9%);
     --card: hsl(0 0% 100%);
@@ -162,6 +176,19 @@
 }
 
 .dark {
+    /* Pinterest tokens — dark */
+    --pin-ink: #f5f5f0;
+    --pin-body: #d6d6cf;
+    --pin-mute: #9a9a92;
+    --pin-ash: #6f6f68;
+    --pin-hairline: #3a3a35;
+    --pin-hairline-soft: #2f2f2a;
+    --pin-canvas: #201f1c;
+    --pin-soft: #161613;
+    --pin-card: #2a2925;
+    --pin-secondary: #34332e;
+    --pin-secondary-pressed: #45443d;
+
     --background: hsl(0 0% 3.9%);
     --foreground: hsl(0 0% 98%);
     --card: hsl(0 0% 3.9%);
@@ -212,6 +239,20 @@
     --dp-primary-text-color: #ffffff;
     --dp-text-color: #33332e;
     --dp-hover-color: #f6f6f3;
+    --dp-border-radius: 16px;
+    --dp-cell-border-radius: 9999px;
+    --dp-font-family: 'Inter', system-ui, sans-serif;
+}
+
+.dp__theme_dark {
+    --dp-primary-color: #e60023;
+    --dp-primary-text-color: #ffffff;
+    --dp-background-color: #2a2925;
+    --dp-text-color: #f5f5f0;
+    --dp-hover-color: #34332e;
+    --dp-hover-text-color: #f5f5f0;
+    --dp-border-color: #3a3a35;
+    --dp-menu-border-color: #3a3a35;
     --dp-border-radius: 16px;
     --dp-cell-border-radius: 9999px;
     --dp-font-family: 'Inter', system-ui, sans-serif;

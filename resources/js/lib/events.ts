@@ -98,12 +98,26 @@ function toParams(
     return params;
 }
 
-export async function fetchFilterOptions(): Promise<FilterOptions> {
-    const res = await fetch('/events/filters', {
-        headers: { Accept: 'application/json' },
-    });
+// The filter options are immutable for the life of the page and both the page
+// and its filter component request them on mount — share a single in-flight
+// promise so they cost one request, not two.
+let filterOptionsPromise: Promise<FilterOptions> | null = null;
 
-    return res.json();
+export function fetchFilterOptions(): Promise<FilterOptions> {
+    if (!filterOptionsPromise) {
+        filterOptionsPromise = fetch('/events/filters', {
+            headers: { Accept: 'application/json' },
+        })
+            .then((res) => res.json())
+            .catch((error) => {
+                // Don't cache a failed request — allow the next call to retry.
+                filterOptionsPromise = null;
+
+                throw error;
+            });
+    }
+
+    return filterOptionsPromise;
 }
 
 export async function fetchEventPage(
@@ -152,7 +166,6 @@ export interface RegisterResult {
     ok: boolean;
     already_registered: boolean;
     attendees_count: number;
-    attendee: { name: string; status: string };
 }
 
 export async function registerAttendee(

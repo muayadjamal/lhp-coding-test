@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import CollapsibleFilters from '@/components/events/CollapsibleFilters.vue';
 import EventCardComponent from '@/components/events/EventCard.vue';
-import EventFilters from '@/components/events/EventFilters.vue';
 import PinLoader from '@/components/events/PinLoader.vue';
 import RegisterDialog from '@/components/events/RegisterDialog.vue';
 import {
@@ -137,7 +137,7 @@ onBeforeUnmount(() => observer?.disconnect());
         class="sticky top-16 z-30 border-b border-pin-hairline bg-pin-soft/90 backdrop-blur"
     >
         <div class="mx-auto max-w-[1280px] px-4 py-3 sm:px-6">
-            <EventFilters v-model="filters" />
+            <CollapsibleFilters v-model="filters" />
         </div>
     </div>
 

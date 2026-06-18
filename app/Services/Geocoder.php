@@ -14,12 +14,29 @@ use App\Support\CityAnchors;
 class Geocoder
 {
     /**
+     * Memoised lookups keyed by rounded coordinate. Anchor matching is
+     * deterministic, so resolving the same neighbourhood twice — common when a
+     * page renders many co-located events — costs one anchor scan, not N.
+     *
+     * @var array<string, array{city: string, country: string, country_name: string, label: string, tz: string}|null>
+     */
+    private array $cache = [];
+
+    /**
      * @return array{city: string, country: string, country_name: string, label: string, tz: string}|null
      */
     public function resolve(?float $lat, ?float $lng): ?array
     {
         if ($lat === null || $lng === null) {
             return null;
+        }
+
+        // ~1km bucket: far finer than the anchor spacing, so it never changes
+        // the chosen anchor but collapses the common "same venue" repeats.
+        $key = round($lat, 2).':'.round($lng, 2);
+
+        if (array_key_exists($key, $this->cache)) {
+            return $this->cache[$key];
         }
 
         $best = null;
@@ -39,12 +56,12 @@ class Geocoder
         }
 
         if ($best === null) {
-            return null;
+            return $this->cache[$key] = null;
         }
 
         $countryName = CityAnchors::COUNTRIES[$best['country']];
 
-        return [
+        return $this->cache[$key] = [
             'city' => $best['city'],
             'country' => $best['country'],
             'country_name' => $countryName,

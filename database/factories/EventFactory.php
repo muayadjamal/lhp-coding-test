@@ -23,7 +23,7 @@ class EventFactory extends Factory
         return [
             'user_id' => User::factory(),
             'type' => $type,
-            'status' => fake()->randomElement(['draft', 'published', 'cancelled', 'sold_out']),
+            'status' => 'published',
             'created_time' => $startsAt,
             'latitude' => $lat,
             'longitude' => $lng,

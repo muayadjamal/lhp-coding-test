@@ -3,8 +3,10 @@ import { Head } from '@inertiajs/vue3';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import EventFilters from '@/components/events/EventFilters.vue';
+import { computed } from 'vue';
+import CollapsibleFilters from '@/components/events/CollapsibleFilters.vue';
 import PinLoader from '@/components/events/PinLoader.vue';
+import { useAppearance } from '@/composables/useAppearance';
 import {
     readFiltersFromUrl,
     syncFiltersToUrl,
@@ -14,6 +16,14 @@ import { fetchClusters, fetchFilterOptions } from '@/lib/events';
 import type { EventFilters as Filters, FilterOptions } from '@/lib/events';
 
 defineOptions({ layout: EventsLayout });
+
+const { resolvedAppearance } = useAppearance();
+const isDark = computed(() => resolvedAppearance.value === 'dark');
+
+const TILES = {
+    light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+};
 
 const filters = ref<Filters>(readFiltersFromUrl());
 const options = ref<FilterOptions | null>(null);
@@ -25,28 +35,34 @@ const mode = ref<'clusters' | 'points'>('clusters');
 
 let map: L.Map | null = null;
 let layer: L.LayerGroup | null = null;
+let tiles: L.TileLayer | null = null;
 let debounce: ReturnType<typeof setTimeout> | null = null;
 
 function clusterIcon(count: number): L.DivIcon {
     const size = count > 500 ? 64 : count > 100 ? 54 : count > 25 ? 44 : 36;
     const label = count > 999 ? `${(count / 1000).toFixed(1)}k` : String(count);
+    const bg = isDark.value ? '#f1f0ea' : '#262622';
+    const fg = isDark.value ? '#201f1c' : '#ffffff';
+    const ring = isDark.value
+        ? 'rgba(241,240,234,0.18)'
+        : 'rgba(38,38,34,0.16)';
 
     return L.divIcon({
-        html: `<div class="flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-pin-dark font-pin text-[13px] font-bold text-white ring-[5px] ring-pin-dark/15 transition-transform duration-150 hover:scale-110">${label}</div>`,
+        html: `<div class="flex h-full w-full cursor-pointer items-center justify-center rounded-full font-pin text-[13px] font-bold transition-transform duration-150 hover:scale-110" style="background:${bg};color:${fg};box-shadow:0 0 0 5px ${ring}">${label}</div>`,
         className: '!flex',
         iconSize: [size, size],
     });
 }
 
 function pointIcon(featured: boolean): L.DivIcon {
-    const base =
-        'h-4 w-4 rounded-full border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-transform duration-150 hover:scale-125';
-    const tone = featured
-        ? 'bg-pin-red ring-[3px] ring-pin-red/25'
-        : 'bg-pin-dark';
+    const bg = featured ? '#e60023' : isDark.value ? '#f1f0ea' : '#262622';
+    const border = isDark.value && !featured ? '#201f1c' : '#ffffff';
+    const ring = featured
+        ? 'box-shadow:0 0 0 3px rgba(230,0,35,0.25),0 1px 4px rgba(0,0,0,0.35);'
+        : 'box-shadow:0 1px 4px rgba(0,0,0,0.35);';
 
     return L.divIcon({
-        html: `<div class="${base} ${tone}"></div>`,
+        html: `<div class="h-4 w-4 rounded-full border-2 transition-transform duration-150 hover:scale-125" style="background:${bg};border-color:${border};${ring}"></div>`,
         className: '!flex',
         iconSize: [16, 16],
     });
@@ -165,6 +181,15 @@ function flyToLocation(f: Filters) {
     refresh();
 }
 
+// Swap map tiles + re-tint markers when the theme changes.
+watch(isDark, (dark) => {
+    if (tiles) {
+        tiles.setUrl(dark ? TILES.dark : TILES.light);
+    }
+
+    refresh();
+});
+
 watch(
     filters,
     (f) => {
@@ -192,13 +217,10 @@ onMounted(async () => {
         [30, -20],
         3,
     );
-    L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        {
-            attribution: '&copy; OpenStreetMap &copy; CARTO',
-            maxZoom: 19,
-        },
-    ).addTo(map);
+    tiles = L.tileLayer(isDark.value ? TILES.dark : TILES.light, {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 19,
+    }).addTo(map);
     layer = L.layerGroup().addTo(map);
     map.on('moveend', scheduleRefresh);
     options.value = await fetchFilterOptions();
@@ -260,7 +282,7 @@ onBeforeUnmount(() => {
         class="mx-auto max-w-[1280px] animate-in px-4 py-4 duration-700 ease-out fade-in sm:px-6"
     >
         <div class="mb-4">
-            <EventFilters v-model="filters" />
+            <CollapsibleFilters v-model="filters" />
         </div>
 
         <div
@@ -287,8 +309,16 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-/* Leaflet generates the popup shell outside Vue, so its radius needs plain CSS. */
+/* Leaflet generates the popup shell outside Vue, so it needs plain CSS. */
 .leaflet-popup-content-wrapper {
     border-radius: 16px;
+}
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+    background: #2a2925;
+    color: #f5f5f0;
+}
+.dark .leaflet-popup-close-button {
+    color: #9a9a92;
 }
 </style>

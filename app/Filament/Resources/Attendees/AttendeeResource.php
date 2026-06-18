@@ -41,8 +41,6 @@ class AttendeeResource extends Resource
     {
         return [
             'index' => ListAttendees::route('/'),
-            'create' => CreateAttendee::route('/create'),
-            'edit' => EditAttendee::route('/{record}/edit'),
         ];
     }
 }
