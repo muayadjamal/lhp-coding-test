@@ -7,7 +7,6 @@ const KEYS: (keyof EventFilters)[] = [
     'type',
     'country',
     'city',
-    'near',
 ];
 
 /** Read the active filters from the current URL's query string. */

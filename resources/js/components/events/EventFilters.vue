@@ -93,65 +93,10 @@ function dateLabel(value?: string): string {
         year: 'numeric',
     });
 }
-
-// --- "Near me" (geolocation) -------------------------------------------------
-const locating = ref(false);
-const geoError = ref<string | null>(null);
-const isNear = computed(() => !!props.modelValue.near);
-
-function toggleNear() {
-    geoError.value = null;
-
-    if (props.modelValue.near) {
-        update('near', '');
-
-        return;
-    }
-
-    if (!navigator.geolocation) {
-        geoError.value = 'Location is not available in this browser.';
-
-        return;
-    }
-
-    locating.value = true;
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            locating.value = false;
-            update(
-                'near',
-                `${pos.coords.latitude.toFixed(4)},${pos.coords.longitude.toFixed(4)}`,
-            );
-        },
-        () => {
-            locating.value = false;
-            geoError.value = 'Could not get your location.';
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
-    );
-}
 </script>
 
 <template>
     <div class="flex flex-wrap items-end gap-2.5">
-        <button
-            type="button"
-            :disabled="locating"
-            class="flex h-11 items-center gap-2 self-end rounded-full px-4 text-sm font-bold transition-all active:scale-95 disabled:opacity-70"
-            :class="
-                isNear
-                    ? 'bg-pin-red text-pin-canvas hover:bg-pin-red-pressed'
-                    : 'border border-pin-hairline bg-pin-card text-pin-ink hover:bg-pin-secondary'
-            "
-            :title="geoError ?? ''"
-            @click="toggleNear"
-        >
-            <span>📍</span>
-            <span>{{
-                locating ? 'Locating…' : isNear ? 'Near me ✓' : 'Near me'
-            }}</span>
-        </button>
-
         <div class="flex flex-col gap-1">
             <span
                 class="px-1 text-[11px] font-bold tracking-wide text-pin-mute uppercase"

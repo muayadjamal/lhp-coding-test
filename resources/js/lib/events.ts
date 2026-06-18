@@ -7,8 +7,6 @@ export interface EventFilters {
     type?: string;
     country?: string;
     city?: string;
-    /** "lat,lng" point for the "near me" filter. */
-    near?: string;
 }
 
 export interface CityOption {

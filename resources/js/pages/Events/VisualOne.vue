@@ -145,14 +145,6 @@ function flyToLocation(f: Filters) {
         return refresh();
     }
 
-    if (f.near) {
-        const [lat, lng] = f.near.split(',').map(Number);
-
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-            return void map.flyTo([lat, lng], 9, { duration: 0.8 });
-        }
-    }
-
     if (f.city) {
         const city = options.value.cities.find((c) => c.city === f.city);
 
@@ -194,7 +186,7 @@ watch(
     filters,
     (f) => {
         syncFiltersToUrl(f);
-        const locationKey = `${f.country ?? ''}|${f.city ?? ''}|${f.near ?? ''}`;
+        const locationKey = `${f.country ?? ''}|${f.city ?? ''}`;
 
         if (locationKey !== lastLocationKey) {
             lastLocationKey = locationKey;
@@ -227,9 +219,9 @@ onMounted(async () => {
 
     // Apply filters restored from the URL: fly to the saved location, else fit world.
     const f = filters.value;
-    lastLocationKey = `${f.country ?? ''}|${f.city ?? ''}|${f.near ?? ''}`;
+    lastLocationKey = `${f.country ?? ''}|${f.city ?? ''}`;
 
-    if (f.country || f.city || f.near) {
+    if (f.country || f.city) {
         flyToLocation(f);
     } else {
         refresh();

@@ -61,17 +61,6 @@ it('filters cards by country via the location bounding boxes', function () {
         ->assertJsonPath('data.0.country', 'JP');
 });
 
-it('filters cards near a point', function () {
-    $user = User::factory()->create();
-    Event::factory()->for($user)->create(['latitude' => 40.71, 'longitude' => -74.00]); // New York
-    Event::factory()->for($user)->create(['latitude' => 35.68, 'longitude' => 139.65]); // Tokyo
-
-    $this->getJson(route('events.cards', ['near' => '40.71,-74.00']))
-        ->assertOk()
-        ->assertJsonPath('total', 1)
-        ->assertJsonPath('data.0.city', 'New York');
-});
-
 it('filters cards by date range', function () {
     $user = User::factory()->create();
     Event::factory()->for($user)->create(['created_time' => now()->addDays(2)->timestamp]);
