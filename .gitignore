@@ -31,3 +31,7 @@ yarn-error.log
 
 # Playwright MCP artifacts
 .playwright-mcp
+
+# Local QA screenshots
+/live-*.png
+/*.png
