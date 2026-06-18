@@ -7,6 +7,41 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  Pinterest-style design tokens (see DESIGN.md). Used by the public event pages
+  (the two visuals + event detail). Fixed hex values — these surfaces are always
+  light/cream and do not follow the app's dark mode.
+*/
+@theme {
+    --font-pin:
+        'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
+
+    --color-pin-red: #e60023;
+    --color-pin-red-pressed: #cc001f;
+    --color-pin-ink: #000000;
+    --color-pin-ink-soft: #211922;
+    --color-pin-body: #33332e;
+    --color-pin-mute: #62625b;
+    --color-pin-ash: #91918c;
+    --color-pin-stone: #c8c8c1;
+    --color-pin-hairline: #dadad3;
+    --color-pin-hairline-soft: #e5e5e0;
+    --color-pin-canvas: #ffffff;
+    --color-pin-soft: #fbfbf9;
+    --color-pin-card: #f6f6f3;
+    --color-pin-secondary: #e5e5e0;
+    --color-pin-secondary-pressed: #c8c8c1;
+    --color-pin-dark: #262622;
+    --color-pin-focus: #435ee5;
+    --color-pin-success: #103c25;
+    --color-pin-success-pale: #c7f0da;
+
+    --radius-pin-sm: 8px;
+    --radius-pin-md: 16px;
+    --radius-pin-lg: 32px;
+}
+
 @theme inline {
     --font-sans:
         Instrument Sans, ui-sans-serif, system-ui, sans-serif,
@@ -169,4 +204,15 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Theme @vuepic/vue-datepicker to match the Pinterest palette (DESIGN.md). */
+.dp__theme_light {
+    --dp-primary-color: #e60023;
+    --dp-primary-text-color: #ffffff;
+    --dp-text-color: #33332e;
+    --dp-hover-color: #f6f6f3;
+    --dp-border-radius: 16px;
+    --dp-cell-border-radius: 9999px;
+    --dp-font-family: 'Inter', system-ui, sans-serif;
 }

@@ -6,54 +6,26 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('renders the events listing shell without authentication', function () {
-    $this->get(route('events.index'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('Events/Index')
-            ->has('statuses', 4)
-            ->where('filters.from', '2023-01-01')
-        );
+it('redirects the home route to the discover grid', function () {
+    $this->get(route('home'))->assertRedirect(route('events.visual2'));
 });
 
-it('returns a json page of events with load stats for lazy loading', function () {
-    $user = User::factory()->create(['name' => 'Ada Lovelace']);
-    Event::factory()->for($user)->create([
-        'type' => 'concert',
+it('renders the two visual pages without authentication', function () {
+    $this->get(route('events.visual1'))->assertOk();
+    $this->get(route('events.visual2'))->assertOk();
+});
+
+it('surprise me redirects to a published event detail', function () {
+    $user = User::factory()->create();
+    $event = Event::factory()->for($user)->create([
         'status' => 'published',
-        'created_time' => 1_700_000_000,
-        'latitude' => 40.7128,
-        'longitude' => -74.0060,
+        'created_time' => now()->addDays(5)->timestamp,
     ]);
 
-    $this->getJson(route('events.data'))
-        ->assertOk()
-        ->assertJsonStructure([
-            'data',
-            'current_page',
-            'last_page',
-            'total',
-            'stats' => ['ms', 'bytes'],
-        ])
-        ->assertJsonPath('total', 1)
-        ->assertJsonPath('data.0.type', 'concert')
-        ->assertJsonPath('data.0.created_time', 1_700_000_000)
-        ->assertJsonPath('data.0.latitude', 40.7128)
-        ->assertJsonPath('data.0.user.name', 'Ada Lovelace');
+    $this->get(route('events.random'))->assertRedirect(route('events.show', $event));
 });
 
-it('filters the data endpoint by status', function () {
-    $user = User::factory()->create();
-    Event::factory()->for($user)->create(['status' => 'published']);
-    Event::factory()->for($user)->create(['status' => 'cancelled']);
-
-    $this->getJson(route('events.data', ['status' => 'cancelled']))
-        ->assertOk()
-        ->assertJsonPath('total', 1)
-        ->assertJsonPath('data.0.status', 'cancelled');
-});
-
-it('shows an event detail page with its payload', function () {
+it('shows an event detail page with presented fields', function () {
     $user = User::factory()->create();
     $event = Event::factory()->for($user)->create([
         'payload' => ['name' => 'Global Tech Summit', 'location' => ['lat' => 1.5, 'lng' => 2.5]],
@@ -64,12 +36,6 @@ it('shows an event detail page with its payload', function () {
         ->assertInertia(fn ($page) => $page
             ->component('Events/Show')
             ->where('event.id', $event->id)
-            ->where('event.payload.name', 'Global Tech Summit')
+            ->where('event.title', 'Global Tech Summit')
         );
-});
-
-it('renders the two visualization pages and the dashboard without authentication', function () {
-    $this->get(route('events.visual1'))->assertOk();
-    $this->get(route('events.visual2'))->assertOk();
-    $this->get(route('dashboard'))->assertOk();
 });

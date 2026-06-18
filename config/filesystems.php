@@ -41,7 +41,9 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Host-relative so locally-served images work on any host/port
+            // (php artisan serve, sail, etc.) without depending on APP_URL.
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
