@@ -3,36 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AttendeeStatus;
+use App\Http\Requests\StoreAttendeeRequest;
 use App\Mail\AttendeeConfirmationMail;
 use App\Models\Event;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
 
 class AttendeeController extends Controller
 {
     /**
      * Register interest / attendance for an event and email a confirmation.
      */
-    public function store(Request $request, Event $event): JsonResponse
+    public function store(StoreAttendeeRequest $request, Event $event): JsonResponse
     {
-        // Validate manually and always answer JSON: this is an AJAX-only
-        // endpoint, and the app only auto-renders JSON exceptions under api/*.
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'status' => ['nullable', 'in:going,interested'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'The given data was invalid.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $validated = $validator->validated();
+        $validated = $request->validated();
 
         // Re-registration must not overwrite the existing record (no proof of
         // email ownership), so treat a known (event, email) pair as a no-op.
