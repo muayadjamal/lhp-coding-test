@@ -20,6 +20,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property bool $is_admin
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -37,13 +38,17 @@ class User extends Authenticatable implements FilamentUser, PasskeyUser
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
-     * Gate access to the Filament admin panel. Without this, Filament denies
-     * access outside the local environment. Every seeded account is staff, so
-     * any authenticated user may enter.
+     * Gate access to the Filament admin panel. Public registration is open, so
+     * access is restricted to verified staff accounts (`is_admin`) — never to
+     * anyone who merely registered. `is_admin` is intentionally not fillable.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        if ($panel->getId() !== 'admin') {
+            return false;
+        }
+
+        return $this->is_admin && $this->email_verified_at !== null;
     }
 
     /**
@@ -57,6 +62,7 @@ class User extends Authenticatable implements FilamentUser, PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'is_admin' => 'boolean',
         ];
     }
 }

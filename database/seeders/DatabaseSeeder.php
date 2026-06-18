@@ -21,11 +21,13 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Admin login for the Filament panel at /admin.
-        User::query()->updateOrCreate(
+        // Admin login for the Filament panel at /admin. `is_admin` is guarded
+        // (not fillable), so set it explicitly via forceFill.
+        $admin = User::query()->updateOrCreate(
             ['email' => 'admin@admin.com'],
             ['name' => 'Admin', 'password' => Hash::make('123123'), 'email_verified_at' => now()],
         );
+        $admin->forceFill(['is_admin' => true])->save();
 
         // Bulk dataset. Defaults to 1,250,000 events; override with SEED_ROWS,
         // e.g. SEED_ROWS=5000 php artisan db:seed
