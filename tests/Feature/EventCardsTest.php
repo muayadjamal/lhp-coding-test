@@ -29,6 +29,16 @@ it('returns presented cards with featured events first', function () {
         ->and($response->json('data.0.featured'))->toBeTrue();
 });
 
+it('hides draft events from the public grid', function () {
+    $user = User::factory()->create();
+    Event::factory()->for($user)->create(['status' => 'draft', 'payload' => ['name' => 'Secret draft']]);
+    Event::factory()->for($user)->create(['status' => 'published']);
+
+    $this->getJson(route('events.cards'))
+        ->assertOk()
+        ->assertJsonPath('total', 1);
+});
+
 it('filters cards by type', function () {
     $user = User::factory()->create();
     Event::factory()->for($user)->create(['type' => 'concert', 'status' => 'published']);

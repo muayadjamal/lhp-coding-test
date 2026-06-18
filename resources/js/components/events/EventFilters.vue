@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ChevronDown } from '@lucide/vue';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import { computed, onMounted, ref } from 'vue';
+import { useAppearance } from '@/composables/useAppearance';
 import { fetchFilterOptions } from '@/lib/events';
 import type { EventFilters, FilterOptions } from '@/lib/events';
 
@@ -15,6 +17,8 @@ const emit = defineEmits<{
 }>();
 
 const options = ref<FilterOptions | null>(null);
+const { resolvedAppearance } = useAppearance();
+const isDarkTheme = computed(() => resolvedAppearance.value === 'dark');
 
 onMounted(async () => {
     options.value = await fetchFilterOptions();
@@ -156,6 +160,7 @@ function toggleNear() {
             <VueDatePicker
                 :model-value="toDate(modelValue.from)"
                 :enable-time-picker="false"
+                :dark="isDarkTheme"
                 :max-date="toDate(modelValue.to) ?? undefined"
                 :clearable="true"
                 auto-apply
@@ -192,6 +197,7 @@ function toggleNear() {
             <VueDatePicker
                 :model-value="toDate(modelValue.to)"
                 :enable-time-picker="false"
+                :dark="isDarkTheme"
                 :min-date="toDate(modelValue.from) ?? undefined"
                 :clearable="true"
                 auto-apply
@@ -221,25 +227,30 @@ function toggleNear() {
                 class="px-1 text-[11px] font-bold tracking-wide text-pin-mute uppercase"
                 >Country</span
             >
-            <select
-                :value="modelValue.country ?? ''"
-                class="h-11 min-w-[9.5rem] rounded-full border border-pin-hairline bg-pin-card px-4 text-sm font-semibold text-pin-ink transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
-                @change="
-                    update(
-                        'country',
-                        ($event.target as HTMLSelectElement).value,
-                    )
-                "
-            >
-                <option value="">All countries</option>
-                <option
-                    v-for="(name, code) in options?.countries ?? {}"
-                    :key="code"
-                    :value="code"
+            <div class="relative">
+                <select
+                    :value="modelValue.country ?? ''"
+                    class="h-11 w-full min-w-[10rem] appearance-none rounded-full border border-pin-hairline bg-pin-card py-0 pr-11 pl-4 text-sm font-semibold text-pin-ink transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
+                    @change="
+                        update(
+                            'country',
+                            ($event.target as HTMLSelectElement).value,
+                        )
+                    "
                 >
-                    {{ name }}
-                </option>
-            </select>
+                    <option value="">All countries</option>
+                    <option
+                        v-for="(name, code) in options?.countries ?? {}"
+                        :key="code"
+                        :value="code"
+                    >
+                        {{ name }}
+                    </option>
+                </select>
+                <ChevronDown
+                    class="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-pin-mute"
+                />
+            </div>
         </label>
 
         <label class="flex flex-col gap-1">
@@ -247,18 +258,26 @@ function toggleNear() {
                 class="px-1 text-[11px] font-bold tracking-wide text-pin-mute uppercase"
                 >City</span
             >
-            <select
-                :value="modelValue.city ?? ''"
-                class="h-11 min-w-[9.5rem] rounded-full border border-pin-hairline bg-pin-card px-4 text-sm font-semibold text-pin-ink transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
-                @change="
-                    update('city', ($event.target as HTMLSelectElement).value)
-                "
-            >
-                <option value="">All cities</option>
-                <option v-for="c in cities" :key="c.city" :value="c.city">
-                    {{ c.city }}
-                </option>
-            </select>
+            <div class="relative">
+                <select
+                    :value="modelValue.city ?? ''"
+                    class="h-11 w-full min-w-[10rem] appearance-none rounded-full border border-pin-hairline bg-pin-card py-0 pr-11 pl-4 text-sm font-semibold text-pin-ink transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
+                    @change="
+                        update(
+                            'city',
+                            ($event.target as HTMLSelectElement).value,
+                        )
+                    "
+                >
+                    <option value="">All cities</option>
+                    <option v-for="c in cities" :key="c.city" :value="c.city">
+                        {{ c.city }}
+                    </option>
+                </select>
+                <ChevronDown
+                    class="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-pin-mute"
+                />
+            </div>
         </label>
 
         <label v-if="!compact" class="flex flex-col gap-1">
@@ -266,23 +285,31 @@ function toggleNear() {
                 class="px-1 text-[11px] font-bold tracking-wide text-pin-mute uppercase"
                 >Type</span
             >
-            <select
-                :value="modelValue.type ?? ''"
-                class="h-11 rounded-full border border-pin-hairline bg-pin-card px-4 text-sm font-semibold text-pin-ink capitalize transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
-                @change="
-                    update('type', ($event.target as HTMLSelectElement).value)
-                "
-            >
-                <option value="">All types</option>
-                <option
-                    v-for="t in options?.types ?? []"
-                    :key="t"
-                    :value="t"
-                    class="capitalize"
+            <div class="relative">
+                <select
+                    :value="modelValue.type ?? ''"
+                    class="h-11 w-full min-w-[9rem] appearance-none rounded-full border border-pin-hairline bg-pin-card py-0 pr-11 pl-4 text-sm font-semibold text-pin-ink capitalize transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
+                    @change="
+                        update(
+                            'type',
+                            ($event.target as HTMLSelectElement).value,
+                        )
+                    "
                 >
-                    {{ t }}
-                </option>
-            </select>
+                    <option value="">All types</option>
+                    <option
+                        v-for="t in options?.types ?? []"
+                        :key="t"
+                        :value="t"
+                        class="capitalize"
+                    >
+                        {{ t }}
+                    </option>
+                </select>
+                <ChevronDown
+                    class="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-pin-mute"
+                />
+            </div>
         </label>
 
         <label v-if="!compact" class="flex flex-col gap-1">
@@ -290,23 +317,31 @@ function toggleNear() {
                 class="px-1 text-[11px] font-bold tracking-wide text-pin-mute uppercase"
                 >Status</span
             >
-            <select
-                :value="modelValue.status ?? ''"
-                class="h-11 rounded-full border border-pin-hairline bg-pin-card px-4 text-sm font-semibold text-pin-ink capitalize transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
-                @change="
-                    update('status', ($event.target as HTMLSelectElement).value)
-                "
-            >
-                <option value="">Any status</option>
-                <option
-                    v-for="s in options?.statuses ?? []"
-                    :key="s"
-                    :value="s"
-                    class="capitalize"
+            <div class="relative">
+                <select
+                    :value="modelValue.status ?? ''"
+                    class="h-11 w-full min-w-[9rem] appearance-none rounded-full border border-pin-hairline bg-pin-card py-0 pr-11 pl-4 text-sm font-semibold text-pin-ink capitalize transition focus:border-pin-ink focus:bg-pin-canvas focus:ring-2 focus:ring-pin-focus/40 focus:outline-none"
+                    @change="
+                        update(
+                            'status',
+                            ($event.target as HTMLSelectElement).value,
+                        )
+                    "
                 >
-                    {{ s.replace('_', ' ') }}
-                </option>
-            </select>
+                    <option value="">Any status</option>
+                    <option
+                        v-for="s in options?.statuses ?? []"
+                        :key="s"
+                        :value="s"
+                        class="capitalize"
+                    >
+                        {{ s.replace('_', ' ') }}
+                    </option>
+                </select>
+                <ChevronDown
+                    class="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-pin-mute"
+                />
+            </div>
         </label>
 
         <button

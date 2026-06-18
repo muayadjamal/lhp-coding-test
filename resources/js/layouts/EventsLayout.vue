@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
+import { Moon, Sun } from '@lucide/vue';
 import { computed } from 'vue';
+import { useAppearance } from '@/composables/useAppearance';
 
 const page = usePage();
 const path = computed(() => page.url.split('?')[0]);
+
+const { resolvedAppearance, updateAppearance } = useAppearance();
+const isDark = computed(() => resolvedAppearance.value === 'dark');
+
+function toggleTheme() {
+    updateAppearance(isDark.value ? 'light' : 'dark');
+}
 
 const links = [
     { label: 'Discover', href: '/events-visual-2' },
@@ -65,6 +74,24 @@ function isActive(href: string) {
                 </div>
 
                 <div class="ml-auto flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="flex h-10 w-10 items-center justify-center rounded-full bg-pin-card text-pin-ink transition-all hover:bg-pin-secondary active:scale-95"
+                        :title="
+                            isDark
+                                ? 'Switch to light mode'
+                                : 'Switch to dark mode'
+                        "
+                        :aria-label="
+                            isDark
+                                ? 'Switch to light mode'
+                                : 'Switch to dark mode'
+                        "
+                        @click="toggleTheme"
+                    >
+                        <Sun v-if="isDark" class="h-5 w-5" />
+                        <Moon v-else class="h-5 w-5" />
+                    </button>
                     <Link
                         href="/events/random"
                         class="group flex items-center gap-1.5 rounded-full bg-pin-red px-4 py-2 text-sm font-bold text-pin-canvas transition-all hover:bg-pin-red-pressed active:scale-95"

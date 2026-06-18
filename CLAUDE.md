@@ -89,6 +89,38 @@ radii 16px (md) / 32px (lg) / full; no gradients or card shadows. The 2 visuals
 - Times: `created_time` is UTC; always present via the venue timezone from the
   geocoder.
 
+## Performance & scale
+
+The public read paths are tuned for high read concurrency on the large
+(default 1.25M-row) dataset:
+
+- **Geocoder is a singleton with a per-request coordinate memo** — resolving a
+  page of co-located events costs one anchor scan, not one per row. Resolve it
+  via DI / `app(Geocoder::class)`; don't `new` it.
+- **`cards`** counts the filtered set once per filter (cached, 5 min) instead of
+  on every infinite-scroll page, then pages with `forPage` + `get`.
+- **`clusters`** runs a single grid aggregate (the total is the sum of cell
+  counts — no separate `COUNT(*)`), cached ~30s keyed by zoom + filters +
+  viewport so a fresh world view is shared across users.
+- **`filters`** is cached (constant per deploy) and served with a long
+  `Cache-Control`.
+- All three JSON endpoints send `Cache-Control` so browsers/CDN absorb repeat
+  traffic — the default unfiltered grid/map is identical for everyone.
+- **`random`** seeks a random point on the indexed `created_time` axis instead
+  of `ORDER BY RANDOM()` (a full sort).
+- Indexes: `status`, `(latitude, longitude)`, `created_time`, plus an
+  expression index on `json_extract(payload,'$.featured')` for the featured
+  lookup / ordering.
+- SQLite runs in **WAL** (`DB_JOURNAL_MODE`/`DB_SYNCHRONOUS`/`DB_BUSY_TIMEOUT`
+  in `.env`) so reads run alongside the single writer.
+
+At genuine 100k-concurrent scale the single SQLite file is the ceiling: move
+`CACHE_STORE`/`SESSION_DRIVER`/`QUEUE_CONNECTION` to **Redis** and the primary
+DB to **Postgres/MySQL with read replicas** (all driver-swappable via `.env`;
+the code uses the `Cache` facade and standard Eloquent, no SQLite-isms in the
+hot paths beyond the guarded `json_extract` index migration). Run `ANALYZE`
+after a large seed so the planner has table statistics.
+
 ## Before claiming done
 
 Run `composer ci:check` (Pint + Prettier + ESLint + vue-tsc + PHPStan + Pest).
